@@ -3,7 +3,7 @@ A Python script that scrapes Youtube data from the Youtube API.
 
 ## Usage
 ```
-$ python youtubescraper videos.txt key.txt
+$ python youtubescraper channels.txt key.txt
 ```
 
 ## Setup
