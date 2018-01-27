@@ -4,7 +4,7 @@ import yapi
 
 def main():
     input_file = sys.argv[1]
-    api_key = sys.argv[2]
+    api_key = readfile(sys.argv[2])[0]
     contents = readfile(input_file)
 
     api = yapi.YoutubeAPI(api_key)
