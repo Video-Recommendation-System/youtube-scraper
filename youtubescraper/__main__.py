@@ -9,25 +9,19 @@ def main():
 
     api = yapi.YoutubeAPI(api_key)
 
-    print contents
+    for channel_name in contents:
+        videos = np.array(list(get_channel_videos_info(api, channel_name)))
+        print videos.shape
 
-
-    channel_playlist_id = get_channel_playlist_id(api, "MatthewPatrick13")
-    print channel_playlist_id
+def get_channel_videos_info(api, channel_name):
+    channel_playlist_id = get_channel_playlist_id(api, channel_name)
     channel_videos = get_channel_videos(api, channel_playlist_id)
-
-    print channel_videos
 
     for video_id in channel_videos:
         video = grab_video(api, video_id)
         info = get_video_info(video_id, video)
-        for x in info:
-            print x
 
-        print "~~~~~~~~~~~~~~~~~~~~"
-        print "~~~~~~~~~~~~~~~~~~~~"
-        print "~~~~~~~~~~~~~~~~~~~~"
-
+        yield info
 
 def readfile(filepath):
     with open(filepath) as f:
