@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import sys
 import yapi
 
@@ -6,13 +7,17 @@ NUM_MAX_VIDEOS = 2
 
 def main():
     input_file = sys.argv[1]
-    api_key = readfile(sys.argv[2])[0]
+    output_file = sys.argv[2]
+    api_key = readfile(sys.argv[3])[0]
     channel_names = readfile(input_file)
 
     api = yapi.YoutubeAPI(api_key)
     all_videos = np.concatenate(list(get_all_channel_videos(api, channel_names)))
 
-    print all_videos.shape
+    df = pd.DataFrame(all_videos)
+    df.columns = ["video_id", "video_title", "description", "tags", "channel", "thumbnail"]
+
+    df.to_csv(output_file, index=False)
 
 def get_all_channel_videos(api, channel_names):
     for channel_name in channel_names:
@@ -39,14 +44,14 @@ def grab_video(api, video_id):
     return api.get_video_info(video_id)
 
 def get_video_info(video_id, video):
-    return [
+    return [x.encode("utf-8") for x in [
         video_id,
         get_video_title(video),
-        get_video_description(video),
+        get_video_description(video).replace("\n", "\\n"),
         str(get_video_tags(video)),
         get_channel_title(video),
         get_video_thumbnail(video)
-    ]
+    ]]
 
 def get_video_title(video):
     return video.items[0].snippet.title
