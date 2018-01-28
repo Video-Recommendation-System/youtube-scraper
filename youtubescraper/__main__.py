@@ -3,7 +3,7 @@ import pandas as pd
 import sys
 import yapi
 
-NUM_MAX_VIDEOS = 2
+NUM_MAX_VIDEOS = 7#20
 
 def main():
     input_file = sys.argv[1]
@@ -12,7 +12,8 @@ def main():
     channel_names = readfile(input_file)
 
     api = yapi.YoutubeAPI(api_key)
-    all_videos = np.concatenate(list(get_all_channel_videos(api, channel_names)))
+    all_videos = [x for x in list(get_all_channel_videos(api, channel_names)) if len(x) > 0]
+    all_videos = np.concatenate(all_videos)
 
     df = pd.DataFrame(all_videos)
     df.columns = ["video_id", "video_title", "description", "tags", "channel", "thumbnail"]
@@ -21,19 +22,25 @@ def main():
 
 def get_all_channel_videos(api, channel_names):
     for channel_name in channel_names:
-        print channel_name
-        videos = np.array(list(get_channel_videos_info(api, channel_name)))
-        yield videos
+        try:
+            print channel_name
+            videos = np.array(list(get_channel_videos_info(api, channel_name)))
+            yield videos
+        except IndexError:
+            pass
 
 def get_channel_videos_info(api, channel_name):
     channel_playlist_id = get_channel_playlist_id(api, channel_name)
     channel_videos = get_channel_videos(api, channel_playlist_id)
 
     for video_id in channel_videos:
-        video = grab_video(api, video_id)
-        info = get_video_info(video_id, video)
+        try:
+            video = grab_video(api, video_id)
+            info = get_video_info(video_id, video)
 
-        yield info
+            yield info
+        except AttributeError:
+            pass
 
 def readfile(filepath):
     with open(filepath) as f:
@@ -48,6 +55,7 @@ def get_video_info(video_id, video):
         video_id,
         get_video_title(video),
         get_video_description(video).replace("\n", "\\n"),
+        #get_video_duration(video),
         str(get_video_tags(video)),
         get_channel_title(video),
         get_video_thumbnail(video)
@@ -59,8 +67,19 @@ def get_video_title(video):
 def get_video_description(video):
     return video.items[0].snippet.description
 
+def get_video_duration(video):
+    return process_duration(video.items[0].duration.encode("utf-8"))
+
+def process_duration(text_duration):
+    text_duration = text_duration.replace("PT", "")
+
+    duration = 0.0
+    if "" in text_duration:
+        pass
+    pass
+
 def get_video_tags(video):
-    return video.items[0].snippet.tags
+    return [x.encode("utf-8") for x in video.items[0].snippet.tags]
 
 def get_channel_title(video):
     return video.items[0].snippet.channelTitle
